@@ -11,7 +11,7 @@ SRC_FILES := $(wildcard *.c)
 OBJ_FILES := $(SRC_FILES:.c=.o)
 
 # Target executable
-TARGET = my_program
+TARGET = test
 
 all: $(TARGET)
 
@@ -24,3 +24,6 @@ $(TARGET): $(OBJ_FILES)
 
 clean:
 	rm -f $(OBJ_FILES) $(TARGET)
+
+run_test: $(TARGET)
+	./$(TARGET)

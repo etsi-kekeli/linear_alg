@@ -1,4 +1,4 @@
-#include "matrince_routines.h"
+#include "matrice_routines.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +43,14 @@ bool is_valid_vec(const vector *v)
     return !is_null_vec(v) && v->tab != NULL;
 }
 
+bool is_same_size(matrix *m1, matrix *m2)
+{
+    return is_valid_matrix(m1) &&
+           is_valid_matrix(m2) &&
+           m1->n == m2->n &&
+           m1->mat[0]->size == m2->mat[0]->size;
+}
+
 vector *vector_create(int size)
 {
     if (size > 0)
@@ -73,12 +81,12 @@ void vector_free(vector *v)
     }
 }
 
-void vector_print(vector v)
+void vector_print(const vector *v)
 {
-    if (is_valid_vec(&v))
+    if (is_valid_vec(v))
     {
-        for (int i = 0; i < v.size; i++)
-            fprintf(stdout, "%.4lf\t", v.tab[i]);
+        for (int i = 0; i < v->size; i++)
+            fprintf(stdout, "%.4lf\t", v->tab[i]);
         fprintf(stdout, "\n");
     }
     else
@@ -212,6 +220,22 @@ matrix *matrix_create(int m, int n)
     return ans;
 }
 
+matrix *matrix_create_filled_with(int m, int n, double x)
+{
+    matrix *ans = matrix_create(m, n);
+    if (is_valid_matrix(ans))
+    {
+        for (int i = 0; i < ans->mat[0]->size; i++)
+        {
+            for (int j = 0; j < ans->n; j++)
+            {
+                ans->mat[j]->tab[i] = x;
+            }
+        }
+    }
+    return ans;
+}
+
 void matrix_free(matrix *m)
 {
     if (m != NULL)
@@ -229,15 +253,15 @@ void matrix_free(matrix *m)
     }
 }
 
-void matrix_print(matrix m)
+void matrix_print(const matrix *m)
 {
-    if (is_valid_matrix(&m))
+    if (is_valid_matrix(m))
     {
-        for (int i = 0; i < m.mat[0]->size; i++)
+        for (int i = 0; i < m->mat[0]->size; i++)
         {
-            for (int j = 0; j < m.n; j++)
+            for (int j = 0; j < m->n; j++)
             {
-                fprintf(stdout, "%.4lf\t", m.mat[j]->tab[i]);
+                fprintf(stdout, "%.4lf\t", m->mat[j]->tab[i]);
             }
             fprintf(stdout, "\n");
         }
@@ -246,4 +270,96 @@ void matrix_print(matrix m)
     {
         fprintf(stderr, "Invalid matrix\n");
     }
+}
+
+matrix *matrix_add(matrix *m1, matrix *m2)
+{
+    if (!is_valid_matrix(m1) || !is_valid_matrix(m2))
+    {
+        fprintf(stderr, "Invalid parameter: invalid matrix\n");
+        return (matrix *)NULL;
+    }
+    if (!is_same_size(m1, m2))
+    {
+        fprintf(stderr, "Invalid parameters: matrixes must be of the same size\n");
+        return (matrix *)NULL;
+    }
+
+    matrix *ans = matrix_create(m1->mat[0]->size, m1->n);
+    if (ans == NULL)
+    {
+        mem_al_fail();
+        return (matrix *)NULL;
+    }
+
+    for (int i = 0; i < m1->mat[0]->size; i++)
+    {
+        for (int j = 0; j < m1->n; j++)
+        {
+            ans->mat[j]->tab[i] = m1->mat[j]->tab[i] + m2->mat[j]->tab[i];
+        }
+    }
+
+    return ans;
+}
+
+matrix *matrix_mul_scalar(const matrix *m, double scalar)
+{
+    if (!is_valid_matrix(m))
+    {
+        fprintf(stderr, "Invalid matrix : Matrix is or contains null pointer\n");
+        return (matrix *)NULL;
+    }
+
+    matrix *ans = matrix_create(m->mat[0]->size, m->n);
+    if (ans == NULL)
+    {
+        mem_al_fail();
+        return ans;
+    }
+
+    for (int i = 0; i < ans->mat[0]->size; i++)
+    {
+        for (int j = 0; j < ans->n; j++)
+        {
+            ans->mat[j]->tab[i] = m->mat[j]->tab[i] * scalar;
+        }
+    }
+
+    return ans;
+}
+
+matrix *matrix_dot(const matrix *m1, const matrix *m2)
+{
+    if (!is_valid_matrix(m1) || !is_valid_matrix(m2))
+    {
+        fprintf(stderr, "Invalid parameter: invalid matrix\n");
+        return (matrix *)NULL;
+    }
+
+    if (m1->n != m2->mat[0]->size)
+    {
+        fprintf(stderr, "Invalid parameters: matrixes incompatible for dot product\n");
+        return (matrix *)NULL;
+    }
+
+    matrix *ans = matrix_create(m1->mat[0]->size, m2->n);
+    if (ans == NULL)
+    {
+        mem_al_fail();
+        return ans;
+    }
+
+    for (int i = 0; i < m1->mat[0]->size; i++)
+    {
+        for (int j = 0; j < m2->n; j++)
+        {
+            for (int k = 0; k < m1->n; k++)
+            {
+                ans->mat[j]->tab[i] += m1->mat[k]->tab[i] * m2->mat[j]->tab[k];
+            }
+        }
+    }
+
+    return ans;
 }
