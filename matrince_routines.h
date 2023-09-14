@@ -29,9 +29,9 @@ vector *vector_mul_scalar(const vector *v, double scalar);
 
 /*
  *Print a vector on the terminal
- *@param  v : A pointer of type vectors
+ *@param  v : A vector
  */
-void vector_print(const vector *v);
+void vector_print(vector v);
 
 /*
  *Add 2 vectors of same size
@@ -81,4 +81,10 @@ matrix *matrix_create(int m, int n);
  *@param  v : A pointer of type vectors
  */
 void matrix_free(matrix *m);
+
+/*
+ *Print a matrix on the terminal
+ *@param  v : A matrix
+ */
+void matrix_print(matrix m);
 #endif

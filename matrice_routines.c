@@ -16,6 +16,28 @@ bool is_null_vec(const vector *v)
     return false;
 }
 
+bool is_valid_matrix(const matrix *m)
+{
+    if (m != NULL)
+    {
+        if (m->mat != NULL)
+        {
+            for (int i = 0; i < m->n; i++)
+            {
+                if (m->mat[i]->tab == NULL)
+                {
+                    return false;
+                    printf("A tab fail\n");
+                }
+            }
+            return true;
+        }
+        else
+            printf("mat is not nul\n");
+    }
+    return false;
+}
+
 bool is_valid_vec(const vector *v)
 {
     return !is_null_vec(v) && v->tab != NULL;
@@ -51,12 +73,12 @@ void vector_free(vector *v)
     }
 }
 
-void vector_print(const vector *v)
+void vector_print(vector v)
 {
-    if (is_valid_vec(v))
+    if (is_valid_vec(&v))
     {
-        for (int i = 0; i < v->size; i++)
-            fprintf(stdout, "%.4lf\t", v->tab[i]);
+        for (int i = 0; i < v.size; i++)
+            fprintf(stdout, "%.4lf\t", v.tab[i]);
         fprintf(stdout, "\n");
     }
     else
@@ -155,7 +177,7 @@ double vector_dot(const vector *v1, const vector *v2)
 
 matrix *matrix_create(int m, int n)
 {
-    if (m < 0 || n < 0)
+    if (m <= 0 || n <= 0)
     {
         fprintf(stderr, "Invalid size: parameters must be positive integers");
         return (matrix *)NULL;
@@ -166,10 +188,11 @@ matrix *matrix_create(int m, int n)
     {
         mem_al_fail();
         return (matrix *)NULL;
-        ;
     }
 
     ans->mat = (vector **)calloc(n, sizeof(vector *));
+    ans->n = n;
+
     if (ans->mat == NULL)
     {
         mem_al_fail();
@@ -203,5 +226,24 @@ void matrix_free(matrix *m)
             free(m->mat);
         }
         free(m);
+    }
+}
+
+void matrix_print(matrix m)
+{
+    if (is_valid_matrix(&m))
+    {
+        for (int i = 0; i < m.mat[0]->size; i++)
+        {
+            for (int j = 0; j < m.n; j++)
+            {
+                fprintf(stdout, "%.4lf\t", m.mat[j]->tab[i]);
+            }
+            fprintf(stdout, "\n");
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Invalid matrix\n");
     }
 }
