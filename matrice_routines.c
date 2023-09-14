@@ -329,6 +329,37 @@ matrix *matrix_mul_scalar(const matrix *m, double scalar)
     return ans;
 }
 
+matrix *matrix_mul(matrix *m1, matrix *m2)
+{
+    if (!is_valid_matrix(m1) || !is_valid_matrix(m2))
+    {
+        fprintf(stderr, "Invalid parameter: invalid matrix\n");
+        return (matrix *)NULL;
+    }
+    if (!is_same_size(m1, m2))
+    {
+        fprintf(stderr, "Invalid parameters: matrixes must be of the same size\n");
+        return (matrix *)NULL;
+    }
+
+    matrix *ans = matrix_create(m1->mat[0]->size, m1->n);
+    if (ans == NULL)
+    {
+        mem_al_fail();
+        return (matrix *)NULL;
+    }
+
+    for (int i = 0; i < m1->mat[0]->size; i++)
+    {
+        for (int j = 0; j < m1->n; j++)
+        {
+            ans->mat[j]->tab[i] = m1->mat[j]->tab[i] * m2->mat[j]->tab[i];
+        }
+    }
+
+    return ans;
+}
+
 matrix *matrix_dot(const matrix *m1, const matrix *m2)
 {
     if (!is_valid_matrix(m1) || !is_valid_matrix(m2))

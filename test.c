@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     vector_free(v3);
 
     matrix *m1 = matrix_create_filled_with(3, 2, 1.9);
-    matrix *m2 = matrix_create_filled_with(3, 2, 0.4);
+    matrix *m2 = matrix_create_filled_with(2, 2, 0.4);
     matrix *m = matrix_dot(m1, m2);
     matrix *menos_m = matrix_mul_scalar(m, -0.4);
     matrix_print(m);

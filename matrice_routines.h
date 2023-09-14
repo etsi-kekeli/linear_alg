@@ -119,6 +119,15 @@ matrix *matrix_add(matrix *m1, matrix *m2);
 matrix *matrix_mul_scalar(const matrix *m, double scalar);
 
 /*
+ *Function to multiply two matrices of the same size
+ *@params:
+ *  m1: matrix
+ *  m2: matrix
+ * Returns a matrix of the same size as m1 and m2
+ */
+matrix *matrix_mul(matrix *m1, matrix *m2);
+
+/*
  *Compute the dot product two matrices
  *@params:
  *  m1: matrix
