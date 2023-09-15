@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 void mem_al_fail()
 {
@@ -40,7 +39,7 @@ bool is_valid_matrix(const matrix *m)
 
 bool is_valid_vec(const vector *v)
 {
-    return !is_null_vec(v) && v->tab != NULL;
+    return !is_null_vec(v) && v->tab != NULL && v->size != 0;
 }
 
 bool is_same_size(matrix *m1, matrix *m2)
@@ -63,11 +62,18 @@ vector *vector_create(int size)
             {
                 v->tab = vect;
                 v->size = size;
+                if (!push_vector(v))
+                {
+                    vector_free(v);
+                }
+
                 return v;
             }
             free(vect);
+            vect = NULL;
         }
     }
+    mem_al_fail();
     return (vector *)NULL;
 }
 
@@ -76,8 +82,13 @@ void vector_free(vector *v)
     if (v != NULL)
     {
         if (v->tab != NULL)
+        {
             free(v->tab);
+            v->tab = NULL;
+            v->size = 0;
+        }
         free(v);
+        v = NULL;
     }
 }
 
@@ -207,6 +218,7 @@ matrix *matrix_create(int m, int n)
         free(ans);
         return (matrix *)NULL;
     }
+
     for (int i = 0; i < n; i++)
     {
         ans->mat[i] = vector_create(m);
@@ -216,6 +228,11 @@ matrix *matrix_create(int m, int n)
             matrix_free(ans);
             return (matrix *)NULL;
         }
+    }
+
+    if (!push_matrix(ans))
+    {
+        matrix_free(ans);
     }
     return ans;
 }
@@ -244,12 +261,16 @@ void matrix_free(matrix *m)
         {
             for (int i = 0; i < m->n; i++)
             {
-                if (m->mat[i]->tab != NULL)
-                    free(m->mat[i]->tab);
+                if (m->mat[i])
+                {
+                    vector_free(m->mat[i]);
+                }
             }
             free(m->mat);
+            m->mat = NULL;
         }
         free(m);
+        m = (matrix *)NULL;
     }
 }
 
@@ -393,4 +414,137 @@ matrix *matrix_dot(const matrix *m1, const matrix *m2)
     }
 
     return ans;
+}
+
+void matrix_routines_init()
+{
+    head = NULL;
+}
+
+bool push_matrix(matrix *m)
+{
+    if (m == NULL)
+    {
+        fprintf(stderr, "Null matrix cannot be add to the tracking list\n");
+        return false;
+    }
+    union data *d = (union data *)calloc(1, sizeof(union data));
+    if (d == NULL)
+    {
+        mem_al_fail();
+        return false;
+    }
+    d->m = m;
+    node *n_new = (node *)calloc(1, sizeof(node));
+
+    if (n_new == NULL)
+    {
+        mem_al_fail();
+        free(d);
+        return false;
+    }
+
+    n_new->d = d;
+    n_new->s = MATRIX;
+    n_new->next = head;
+    head = n_new;
+
+    return true;
+}
+
+bool push_vector(vector *v)
+{
+    if (is_null_vec(v))
+    {
+        fprintf(stderr, "Null vector cannot be add to the stack\n");
+        return false;
+    }
+
+    union data *d = (union data *)calloc(1, sizeof(union data));
+
+    if (d == NULL)
+    {
+        mem_al_fail();
+        return false;
+    }
+
+    node *n_new = (node *)calloc(1, sizeof(node));
+
+    if (n_new == NULL)
+    {
+        mem_al_fail();
+        free(d);
+        return false;
+    }
+
+    d->v = v;
+    n_new->d = d;
+    n_new->s = VECTOR;
+    n_new->next = head;
+    head = n_new;
+
+    return true;
+}
+
+/*
+ * Function use to remove the vector that compose the matrix from the tracking stack.
+ * This function is called after a matrix is removed from the stack.
+ * @params :
+ * n : Number of vector that compose the matrix that is remove from the stack.
+ */
+void remove_matrix_vectors(int n)
+{
+    node *new_head = NULL;
+    for (int i = 0; i < n; i++)
+    {
+        new_head = head->next;
+        free(head->d);
+        free(head);
+        head = new_head;
+    }
+}
+
+void pop()
+{
+    if (head != NULL)
+    {
+        node *new_head = head->next;
+        if (head->s == VECTOR)
+        {
+            vector_free(head->d->v);
+            free(head->d);
+            free(head);
+            head = new_head;
+        }
+        else
+        {
+            int columns = head->d->m->n;
+            matrix_free(head->d->m);
+            free(head->d);
+            free(head);
+            head = new_head;
+            remove_matrix_vectors(columns);
+        }
+    }
+}
+
+void matrix_routines_end()
+{
+    while (head != NULL)
+    {
+        pop();
+    }
+}
+
+void print_structures()
+{
+
+    for (node *current = head; current != NULL; current = current->next)
+    {
+        fprintf(stdout, "Printing a %s\n", current->s == VECTOR ? "vector" : "matrix");
+        if (current->s == VECTOR)
+            vector_print(current->d->v);
+        else
+            matrix_print(current->d->m);
+    }
 }

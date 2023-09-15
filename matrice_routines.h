@@ -1,6 +1,14 @@
 #ifndef MATRICE_ROUTINES_H
 #define MATRICE_ROUTINES_H
 
+#include <stdbool.h>
+
+enum structures
+{
+    VECTOR,
+    MATRIX
+};
+
 typedef struct vector
 {
     double *tab;
@@ -12,6 +20,19 @@ typedef struct matrix
     vector **mat;
     int n;
 } matrix;
+
+union data
+{
+    vector *v;
+    matrix *m;
+};
+
+typedef struct node
+{
+    union data *d;
+    struct node *next;
+    enum structures s;
+} node;
 
 vector *vector_create(int size);
 
@@ -135,5 +156,45 @@ matrix *matrix_mul(matrix *m1, matrix *m2);
  * Returns a matrix of the same size as m1 and m2
  */
 matrix *matrix_dot(const matrix *m1, const matrix *m2);
+
+/*----------------------------------------------------------------------------*/
+// The routines of this block are define to track allocated memory and free it.
+
+// The head of the stack that will be used to track dynamically allocated vectors or matrixes
+node *head;
+
+/*
+ * Routine for initializing the tracking
+ */
+void matrix_routines_init();
+
+/*
+ * Add a matrix to the stack. It actually embbeds it inside of a structure that is pushed into the stack
+ * @params :
+ * m the address of the matrix
+ * Returns true if the matrix was successfully pushed on top of the stack and false otherwise.
+ */
+bool push_matrix(matrix *m);
+
+/*
+ * Add a vector to the stack. It actually embbeds it inside of a structure that is pushed into the stack
+ * @params :
+ * v the address of the vector
+ * Returns true if the vector was successfully pushed on top of the stack and false otherwise.
+ */
+bool push_vector(vector *v);
+
+/*
+ * Remove the head of the stack and free all the memory that is allocated to it recursively
+ */
+void pop();
+
+/*
+ * Free all the memory allocated by the creation of a vector and a matrix since the call of
+ * matrix_routines_int() and all the structures allocated to support the tracking
+ *
+ */
+void matrix_routines_end();
+void print_structures();
 
 #endif
